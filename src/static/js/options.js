@@ -111,6 +111,7 @@ $(function() {
                 '<li><a href="#tab-shelterview">' + _("Shelter view") + '</a></li>',
                 '<li><a href="#tab-waitinglist">' + _("Waiting List") + '</a></li>',
                 '<li><a href="#tab-watermark">' + _("Watermark") + '</a></li>',
+                '<li><a href="#tab-amqp">' + _("AMQP") + '</a></li>',
                 '</ul>'
             ].join("\n");
         },
@@ -1818,6 +1819,32 @@ $(function() {
             ].join("\n");
         },
 
+        render_amqp: function() {
+            return [
+                '<div id="tab-amqp">',
+                '<table>',
+                '<tr><td><label for="amqpenabled">' + _("Enabled") + '</label></td>',
+                '<td><input data="AMQPEnabled" id="amqpenabled" type="checkbox" class="asm-checkbox" /></td></tr>',
+
+                '<tr><td><label for="amqpusername">' + _("Username") + '</label></td>',
+                '<td><input data="AMQPUsername" id="amqpusername" type="text" class="asm-textbox" /></td></tr>',
+
+                '<tr><td><label for="amqppassword">' + _("Password") + '</label></td>',
+                '<td><input data="AMQPPassword"  id="amqppassword" type="password" class="asm-textbox" /></td></tr>',
+
+                '<tr><td><label for="ampqhost">' + _("Host") + '</label></td>',
+                '<td><input data="AMQPHost"  id="ampqhost" type="text" class="asm-textbox" /></td></tr>',
+
+                '<tr><td><label for="amqpexchange">' + _("Exchange") + '</label></td>',
+                '<td><input data="AMQPExchange"  id="amqpexchange" type="text" class="asm-textbox" /></td></tr>',
+
+                '<tr><td><label for="amqpqueue">' + _("Queue") + '</label></td>',
+                '<td><input data="AMQPQueue"  id="amqpqueue" type="text" class="asm-textbox" /></td></tr>',
+                '</table>',
+                '</div>'
+            ].join("\n");
+        },
+
         render: function() {
             return [
                 html.content_header(_("System Options")),
@@ -1858,6 +1885,7 @@ $(function() {
                 this.render_reports(),
                 this.render_waitinglist(),
                 this.render_watermark(),
+                this.render_amqp(),
                 '</div>',
                 html.content_footer()
             ].join("\n");
@@ -1887,7 +1915,7 @@ $(function() {
                 header.show_loading(_("Saving..."));
                 await common.ajax_post("options", formdata);
                 // Needs to do full reload to get updated config.js
-                common.route_reload(true); 
+                common.route_reload(true);
             });
 
             // Components

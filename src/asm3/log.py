@@ -1,6 +1,8 @@
+import json
 
 import asm3.i18n
 import asm3.utils
+from asm3.messagequeue import MessageQueue
 from asm3.typehints import datetime, Database, PostedData, Results
 
 # Log links
@@ -15,11 +17,36 @@ ANIMALCONTROL = 6
 ASCENDING = 0
 DESCENDING = 1
 
+LINK_TYPE_LABELS = {
+    ANIMAL: "Animal",
+    PERSON: "Person",
+    LOSTANIMAL: "Lost Animal",
+    FOUNDANIMAL: "Found Animal",
+    WAITINGLIST: "Waiting List",
+    MOVEMENT: "Movement",
+    ANIMALCONTROL: "Animal Control",
+}
+
+
 def add_log(dbo: Database, username: str, linktype: int, linkid: int, logtypeid: int, logtext: str, logdatetime: datetime = None) -> int:
     """
-    Adds a log entry. If logdatetime is blank, the date/time now is used.
+    Adds a log entry. If logdatetime is blank, the date/time now is used. Sends link type as a string to the MessageQueue.
     """
     if logdatetime is None: logdatetime = dbo.now()
+    linktypestr = LINK_TYPE_LABELS.get(linktype, "Unknown Link Type")
+
+    # Prepare the message for the queue with string representations
+    messagebody = {
+        "LogTypeID": logtypeid,
+        "LinkType": linktypestr,
+        "LinkID": linkid,
+        "Date": str(logdatetime),
+        "Comments": logtext
+    }
+
+    # Serialize and send the message to the queue
+    MessageQueue.get_instance().send_message(dbo, messagebody, "LOG")
+
     return dbo.insert("log", {
         "LogTypeID":        logtypeid,
         "LinkID":           linkid,

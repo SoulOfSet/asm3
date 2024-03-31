@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os, sys
-
 # The path to the folder containing the ASM3 modules
 PATH = os.path.dirname(os.path.abspath(__file__)) + os.sep
 

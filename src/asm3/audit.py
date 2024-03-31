@@ -1,5 +1,7 @@
+import json
 
 import asm3.al
+from asm3.messagequeue import MessageQueue
 
 from asm3.sitedefs import DB_RETAIN_AUDIT_DAYS
 from asm3.typehints import Database, List, ResultRow, Results
@@ -13,6 +15,18 @@ LOGOUT = 5
 VIEW_RECORD = 6
 VIEW_REPORT = 7
 EMAIL = 8
+
+ACTION_LABELS = {
+    ADD: "Add",
+    EDIT: "Edit",
+    DELETE: "Delete",
+    MOVE: "Move",
+    LOGIN: "Login",
+    LOGOUT: "Logout",
+    VIEW_RECORD: "View Record",
+    VIEW_REPORT: "View Report",
+    EMAIL: "Email",
+}
 
 # The columns from these tables that are human readable references so
 # that when map_diff is called we can show something more legible than
@@ -196,14 +210,30 @@ def view_report(dbo: Database, username: str, reportid: int, reportname: str, cr
 def email(dbo: Database, username: str, fromadd: str, toadd: str, ccadd: str, bccadd: str, subject: str, body: str) -> None:
     action(dbo, EMAIL, username, "email", 0, "", "from: %s, to: %s, cc: %s, bcc: %s, subject: %s - %s" % (fromadd, toadd, ccadd, bccadd, subject, body))
 
-def action(dbo: Database, action: str, username: str, tablename: str, linkid: int, parentlinks: str, description: str) -> None:
+def action(dbo: Database, action: int, username: str, tablename: str, linkid: int, parentlinks: str, description: str) -> None:
     """
-    Adds an audit record
+    Adds an audit record. Sends the action as a string to the MessageQueue but
+    uses the integer action value for database insertion in the 'audittrail' table.
     """
-    # Truncate description field to 16k if it's very long
-    if len(description) > 16384:
-        description = description[0:16384]
+    actionstr = ACTION_LABELS.get(action, "Unknown Action")
 
+    # Prepare the message body as a dictionary with 'Action' as a string for the queue
+    messagebody = {
+        "Action": actionstr,
+        "AuditDate": str(dbo.now()),
+        "UserName": username,
+        "TableName": tablename,
+        "LinkID": linkid,
+        "ParentLinks": parentlinks,
+        "Description": description
+    }
+
+    # Truncate the description field to 16k if it's very long
+    description = description[:16384]
+
+    MessageQueue.get_instance().send_message(dbo, messagebody, "AUDIT")
+
+    # For database insertion, use the integer 'action'
     dbo.insert("audittrail", {
         "Action":       action,
         "AuditDate":    dbo.now(),
@@ -213,6 +243,7 @@ def action(dbo: Database, action: str, username: str, tablename: str, linkid: in
         "ParentLinks":  parentlinks,
         "Description":  description
     }, generateID=False, writeAudit=False)
+
 
 def clean(dbo: Database) -> None:
     """

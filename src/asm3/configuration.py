@@ -100,6 +100,12 @@ DEFAULTS = {
     "AlertSpeciesNeuter": "1,2",
     "AlertSpeciesNeverVacc": "1,2",
     "AlertSpeciesRabies": "1,2",
+    "AMQPEnabled": "No",
+    "AMQPUsername": "",
+    "AMQPPassword": "",
+    "AMQPHost": "",
+    "AMQPExchange": "",
+    "AMQPQueue": "",
     "AvidReRegistration": "No", 
     "AvidRegisterOverseas": "No",
     "AvidOverseasOriginCountry": "",
@@ -1727,4 +1733,21 @@ def weight_change_log(dbo: Database) -> bool:
 def weight_change_log_type(dbo: Database) -> int:
     return cint(dbo, "WeightChangeLogType", DEFAULTS["WeightChangeLogType"])
 
+def amqp_enabled(dbo: Database) -> bool:
+    return cboolean(dbo, "AMQPEnabled", DEFAULTS["AMQPEnabled"] == "Yes")
+
+def amqp_username(dbo: Database) -> str:
+    return cstring(dbo, "AMQPUsername", DEFAULTS["AMQPUsername"])
+
+def ampq_password(dbo: Database) -> str:
+    return cstring(dbo, "AMQPPassword", DEFAULTS["AMQPPassword"])
+
+def amqp_host(dbo: Database) -> str:
+    return cstring(dbo, "AMQPHost", DEFAULTS["AMQPHost"])
+
+def amqp_exchange(dbo: Database) -> str:
+    return cstring(dbo, "AMQPExchange", DEFAULTS["AMQPExchange"])
+
+def amqp_queue(dbo: Database) -> str:
+    return cstring(dbo, "AMQPQueue", DEFAULTS["AMQPUsername"])
 
